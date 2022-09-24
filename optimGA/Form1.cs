@@ -51,7 +51,7 @@ namespace optimGA
                 Result = Result + r.ToString() + ", ";
             }
             Result = Result.Substring(0, Result.Length - 2);
-            MessageBox.Show("Expected: 0, found: " + Result + ".");
+            MessageBox.Show("Expected: 0, found: " + Result + ".", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -69,7 +69,7 @@ namespace optimGA
                 Result = Result + r.ToString() + ", ";
             }
             Result = Result.Substring(0, Result.Length - 2);
-            MessageBox.Show("Expected: 0,09090909, 0,63636364, found: " + Result + ".");
+            MessageBox.Show("Expected: 0,09090909, 0,63636364, found: " + Result + ".", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -87,7 +87,7 @@ namespace optimGA
                 Result = Result + r.ToString() + ", ";
             }
             Result = Result.Substring(0, Result.Length - 2);
-            MessageBox.Show("Expected: 0,2378043, 1,2168496, found: " + Result + ".");
+            MessageBox.Show("Expected: 0,2378043, 1,2168496, found: " + Result + ".", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }
