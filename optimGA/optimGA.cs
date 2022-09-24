@@ -215,6 +215,11 @@ namespace optimGA
                 {
                     if (DateTime.Now.Subtract(StartTime).Seconds > TimeBudget)
                     {
+                        for (int j = 0; j < nVars; j++)
+                        {
+                            retVal[j] = Population[0, j];
+                        }
+
                         System.Diagnostics.Debug.WriteLine("Time budget is over, returning.");
                         _endTime = DateTime.Now;
                         _iters = i;
@@ -290,6 +295,11 @@ namespace optimGA
                 }
                 Population = TempPopulation;
                 _iters = i;
+            }
+
+            for (int j = 0; j < nVars; j++)
+            {
+                retVal[j] = Population[0, j];
             }
             _endTime = DateTime.Now;
             _terminationReason = TerminationReason.MaxItersReached;

@@ -78,8 +78,8 @@ namespace optimGA
 
             double[] Domain = new double[2] { -3, 3 };
 
-            optimGA MyOptimGA = new optimGA();
-            double[] RetVals = MyOptimGA.OptimGA(LocalFuncPointer, 2, Domain, Minimize: false);
+            optimGA MyOptimGA = new optimGA(1);
+            double[] RetVals = MyOptimGA.OptimGA(LocalFuncPointer, 2, Domain, Eps: 0, Minimize: false);
 
             string Result = "";
             foreach (double r in RetVals)
