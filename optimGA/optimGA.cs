@@ -8,6 +8,8 @@ namespace optimGA
         // Internal variables --------------------------------------------------------------
 
         private int _timeBudget = 300; // Measured in seconds.
+        private DateTime _startTime;
+        private DateTime _endTime;
 
         // Getters and setters -------------------------------------------------------------
 
@@ -20,6 +22,30 @@ namespace optimGA
             set
             {
                 _timeBudget = value;
+            }
+        }
+
+        public DateTime StartTime
+        {
+            get
+            {
+                return (_startTime);
+            }
+        }
+
+        public DateTime EndTime
+        {
+            get
+            {
+                return (_endTime);
+            }
+        }
+
+        public int Elapsed
+        {
+            get
+            {
+                return (_endTime.Subtract(_startTime).Seconds);
             }
         }
 
@@ -148,7 +174,7 @@ namespace optimGA
             double Recombine;
             Random rnd = new Random();
 
-            DateTime StartTime = DateTime.Now;
+            _startTime = DateTime.Now;
 
             for (int i = 0; i < PopSize; i++)
             {
@@ -165,6 +191,7 @@ namespace optimGA
                     if (DateTime.Now.Subtract(StartTime).Seconds > TimeBudget)
                     {
                         System.Diagnostics.Debug.WriteLine("Time budget is over, returning.");
+                        _endTime = DateTime.Now;
                         return (retVal);
                     }
                 }
@@ -197,6 +224,7 @@ namespace optimGA
                         retVal[j] = Population[0, j];
                     }
                     System.Diagnostics.Debug.WriteLine("Convergence reached, returning.");
+                    _endTime = DateTime.Now;
                     return (retVal);
                 }
 
@@ -233,6 +261,7 @@ namespace optimGA
                 }
                 Population = TempPopulation;
             }
+            _endTime = DateTime.Now;
             return (retVal);
         }
     }
