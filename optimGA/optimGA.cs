@@ -7,10 +7,21 @@ namespace optimGA
     {
         // Internal variables --------------------------------------------------------------
 
-        //private Action<double[], double[]> _funcPointer = null;
-
+        private int _timeBudget = 300; // Measured in seconds.
 
         // Getters and setters -------------------------------------------------------------
+
+        public int TimeBudget
+        {
+            get
+            {
+                return (_timeBudget);
+            }
+            set
+            {
+                _timeBudget = value;
+            }
+        }
 
         // Constructors --------------------------------------------------------------------
 
@@ -18,6 +29,11 @@ namespace optimGA
         public optimGA()
         {
         
+        }
+
+        public optimGA(int TimeBudgetInSeconds)
+        {
+            _timeBudget = TimeBudgetInSeconds;
         }
 
         // Private methods -----------------------------------------------------------------
@@ -132,6 +148,8 @@ namespace optimGA
             double Recombine;
             Random rnd = new Random();
 
+            DateTime StartTime = DateTime.Now;
+
             for (int i = 0; i < PopSize; i++)
             {
                 for (int j = 0; j < nVars; j++)
@@ -142,6 +160,15 @@ namespace optimGA
 
             for (int i = 0; i < MaxGenerations; i++)
             {
+                if (_timeBudget != 0)
+                {
+                    if (DateTime.Now.Subtract(StartTime).Seconds > TimeBudget)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Time budget is over, returning.");
+                        return (retVal);
+                    }
+                }
+
                 System.Diagnostics.Debug.WriteLine("-----");
                 System.Diagnostics.Debug.WriteLine("Generation " + i);
 
@@ -169,6 +196,7 @@ namespace optimGA
                     {
                         retVal[j] = Population[0, j];
                     }
+                    System.Diagnostics.Debug.WriteLine("Convergence reached, returning.");
                     return (retVal);
                 }
 
