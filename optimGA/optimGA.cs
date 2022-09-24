@@ -3,6 +3,13 @@ using System.Xml.Linq;
 
 namespace optimGA
 {
+    public enum TerminationReason
+    {
+        ConvergenceReached,
+        TimeOut,
+        MaxItersReached
+    }
+
     public class optimGA
     {
         // Internal variables --------------------------------------------------------------
@@ -10,6 +17,8 @@ namespace optimGA
         private int _timeBudget = 300; // Measured in seconds.
         private DateTime _startTime;
         private DateTime _endTime;
+        private int _iters;
+        private TerminationReason _terminationReason;
 
         // Getters and setters -------------------------------------------------------------
 
@@ -41,11 +50,27 @@ namespace optimGA
             }
         }
 
-        public int Elapsed
+        public int ElapsedSeconds
         {
             get
             {
                 return (_endTime.Subtract(_startTime).Seconds);
+            }
+        }
+
+        public int NumberOfIterations
+        {
+            get
+            {
+                return (_iters);
+            }
+        }
+
+        public TerminationReason ReasonOfTermination
+        {
+            get
+            {
+                return (_terminationReason);
             }
         }
 
@@ -192,6 +217,8 @@ namespace optimGA
                     {
                         System.Diagnostics.Debug.WriteLine("Time budget is over, returning.");
                         _endTime = DateTime.Now;
+                        _iters = i;
+                        _terminationReason = TerminationReason.TimeOut;
                         return (retVal);
                     }
                 }
@@ -225,6 +252,8 @@ namespace optimGA
                     }
                     System.Diagnostics.Debug.WriteLine("Convergence reached, returning.");
                     _endTime = DateTime.Now;
+                    _iters = i;
+                    _terminationReason = TerminationReason.ConvergenceReached;
                     return (retVal);
                 }
 
@@ -260,8 +289,10 @@ namespace optimGA
                     }
                 }
                 Population = TempPopulation;
+                _iters = i;
             }
             _endTime = DateTime.Now;
+            _terminationReason = TerminationReason.MaxItersReached;
             return (retVal);
         }
     }
