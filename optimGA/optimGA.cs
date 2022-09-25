@@ -185,7 +185,7 @@ namespace optimGA
 
         // Public methods ------------------------------------------------------------------
 
-        public double[] OptimGA(Func<double[], double> Fun, int nVars, double[] Domain, int PopSize = 100, int MaxGenerations = 1000, double MutationProbability = 0.7, double RecombineProbability = 1.0, double Eps = 0.00001, bool Minimize = true)
+        public async Task<double[]> OptimGA(Func<double[], double> Fun, int nVars, double[] Domain, int PopSize = 100, int MaxGenerations = 1000, double MutationProbability = 0.7, double RecombineProbability = 1.0, double Eps = 0.00001, bool Minimize = true)
         {
             bool Max = !Minimize;
             double[,] Population = new double[PopSize, nVars + 1];

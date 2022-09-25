@@ -43,10 +43,10 @@ namespace optimGA
             double[] Domain = new double[2] { -10, 10 };
 
             optimGA MyOptimGA = new optimGA();
-            double[] RetVals = MyOptimGA.OptimGA(LocalFuncPointer, 1, Domain);
+            Task<double[]> RetVals = MyOptimGA.OptimGA(LocalFuncPointer, 1, Domain);
 
             string Result = "";
-            foreach (double r in RetVals)
+            foreach (double r in RetVals.Result)
             {
                 Result = Result + r.ToString() + ", ";
             }
@@ -61,10 +61,10 @@ namespace optimGA
             double[] Domain = new double[2] { -10, 10 };
 
             optimGA MyOptimGA = new optimGA();
-            double[] RetVals = MyOptimGA.OptimGA(LocalFuncPointer, 2, Domain);
+            Task<double[]> RetVals = MyOptimGA.OptimGA(LocalFuncPointer, 2, Domain);
 
             string Result = "";
-            foreach (double r in RetVals)
+            foreach (double r in RetVals.Result)
             {
                 Result = Result + r.ToString() + ", ";
             }
@@ -72,17 +72,17 @@ namespace optimGA
             MessageBox.Show("Expected: 0,09090909, 0,63636364, found: " + Result + ".", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private async void button3_Click(object sender, EventArgs e)
         {
             Func<double[], double> LocalFuncPointer = MaxProb;
 
             double[] Domain = new double[2] { -3, 3 };
 
             optimGA MyOptimGA = new optimGA(1);
-            double[] RetVals = MyOptimGA.OptimGA(LocalFuncPointer, 2, Domain, Eps: 0, Minimize: false);
+            Task<double[]> RetVals = MyOptimGA.OptimGA(LocalFuncPointer, 2, Domain, Eps: 0, Minimize: false);
 
             string Result = "";
-            foreach (double r in RetVals)
+            foreach (double r in RetVals.Result)
             {
                 Result = Result + r.ToString() + ", ";
             }
