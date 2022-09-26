@@ -264,7 +264,7 @@ namespace optimGA
                 QuickSort(ref Population, nVars);
                 if (Max) Population = ReverseArray(Population);
 
-                report.Percentage = i / MaxGenerations * 100;
+                report.Percentage = ((double) i / MaxGenerations) * 100;
                 report.SecondsElapsed = DateTime.Now.Subtract(StartTime).Seconds;
                 report.GenerationsElapsed = i;
                 progress.Report(report);

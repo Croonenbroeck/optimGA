@@ -127,7 +127,7 @@ namespace optimGA
 
         private void ReportProgress(object sender, ProgressReportModel e)
         {
-            System.Diagnostics.Debug.WriteLine(Math.Round(e.Percentage, 1) + " % elapsed; " + e.SecondsElapsed + " seconds elapsed; " + e.GenerationsElapsed + " generations elapsed.");
+            System.Diagnostics.Debug.WriteLine(Math.Round(e.Percentage, 1).ToString() + " % elapsed; " + e.SecondsElapsed + " seconds elapsed; " + e.GenerationsElapsed + " generations elapsed.");
         }
     }
 }
