@@ -4,6 +4,8 @@ namespace optimGA
 {
     public partial class Form1 : Form
     {
+        CancellationTokenSource cts = new CancellationTokenSource();
+
         public Form1()
         {
             InitializeComponent();
@@ -43,15 +45,24 @@ namespace optimGA
             double[] Domain = new double[2] { -10, 10 };
 
             optimGA MyOptimGA = new optimGA();
-            double[] RetVals = await MyOptimGA.OptimGA(LocalFuncPointer, 1, Domain);
-
-            string Result = "";
-            foreach (double r in RetVals)
+            Progress<ProgressReportModel> progress = new Progress<ProgressReportModel>();
+            progress.ProgressChanged += ReportProgress;
+            try
             {
-                Result = Result + r.ToString() + ", ";
+                double[] RetVals = await MyOptimGA.OptimGA(LocalFuncPointer, 1, Domain, progress, cts.Token);
+
+                string Result = "";
+                foreach (double r in RetVals)
+                {
+                    Result = Result + r.ToString() + ", ";
+                }
+                Result = Result.Substring(0, Result.Length - 2);
+                MessageBox.Show("Expected: 0, found: " + Result + ".", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            Result = Result.Substring(0, Result.Length - 2);
-            MessageBox.Show("Expected: 0, found: " + Result + ".", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("Operation was cancelled.");
+            }
         }
 
         private async void button2_Click(object sender, EventArgs e)
@@ -61,15 +72,25 @@ namespace optimGA
             double[] Domain = new double[2] { -10, 10 };
 
             optimGA MyOptimGA = new optimGA();
-            double[] RetVals = await MyOptimGA.OptimGA(LocalFuncPointer, 2, Domain);
-
-            string Result = "";
-            foreach (double r in RetVals)
+            Progress<ProgressReportModel> progress = new Progress<ProgressReportModel>();
+            progress.ProgressChanged += ReportProgress;
+            try
             {
-                Result = Result + r.ToString() + ", ";
+                double[] RetVals = await MyOptimGA.OptimGA(LocalFuncPointer, 2, Domain, progress, cts.Token);
+
+                string Result = "";
+                foreach (double r in RetVals)
+                {
+                    Result = Result + r.ToString() + ", ";
+                }
+                Result = Result.Substring(0, Result.Length - 2);
+                MessageBox.Show("Expected: 0,09090909, 0,63636364, found: " + Result + ".", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
             }
-            Result = Result.Substring(0, Result.Length - 2);
-            MessageBox.Show("Expected: 0,09090909, 0,63636364, found: " + Result + ".", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("Operation was cancelled.");
+            }
         }
 
         private async void button3_Click(object sender, EventArgs e)
@@ -79,15 +100,34 @@ namespace optimGA
             double[] Domain = new double[2] { -3, 3 };
 
             optimGA MyOptimGA = new optimGA(1);
-            double[] RetVals = await MyOptimGA.OptimGA(LocalFuncPointer, 2, Domain, Eps: 0, Minimize: false);
-
-            string Result = "";
-            foreach (double r in RetVals)
+            Progress<ProgressReportModel> progress = new Progress<ProgressReportModel>();
+            progress.ProgressChanged += ReportProgress;
+            try
             {
-                Result = Result + r.ToString() + ", ";
+                double[] RetVals = await MyOptimGA.OptimGA(LocalFuncPointer, 2, Domain, progress, cts.Token, Eps: 0, Minimize: false);
+
+                string Result = "";
+                foreach (double r in RetVals)
+                {
+                    Result = Result + r.ToString() + ", ";
+                }
+                Result = Result.Substring(0, Result.Length - 2);
+                MessageBox.Show("Expected: 0,2378043, 1,2168496, found: " + Result + ".", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            Result = Result.Substring(0, Result.Length - 2);
-            MessageBox.Show("Expected: 0,2378043, 1,2168496, found: " + Result + ".", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("Operation was cancelled.");
+            }
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            cts.Cancel();
+        }
+
+        private void ReportProgress(object sender, ProgressReportModel e)
+        {
+            System.Diagnostics.Debug.WriteLine(Math.Round(e.Percentage, 1) + " % elapsed; " + e.SecondsElapsed + " seconds elapsed; " + e.GenerationsElapsed + " generations elapsed.");
         }
     }
 }

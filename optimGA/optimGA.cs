@@ -10,6 +10,13 @@ namespace optimGA
         MaxItersReached
     }
 
+    public class ProgressReportModel
+    {
+        public double Percentage { get; set; }
+        public int SecondsElapsed { get; set; }
+        public int GenerationsElapsed { get; set; }
+    }
+
     public class optimGA
     {
         // Internal variables --------------------------------------------------------------
@@ -183,9 +190,31 @@ namespace optimGA
             return (OutVec);
         }
 
+        private async Task<double[]> Evaluate(double[,] Population, Func<double[], double> Fun)
+        {
+            int PopSize = Population.GetLength(0);
+            int nVars = Population.GetLength(1) - 1;
+
+            List<Task<double>> tasks = new List<Task<double>>();
+
+            for (int i = 0; i < PopSize; i++)
+            {
+                double[] Row = new double[nVars];
+                for (int j = 0; j < nVars; j++)
+                {
+                    Row[j] = Population[i, j];
+                }
+                tasks.Add(Task.Run(() => Fun(Row)));
+            }
+
+            double[] RetVals = await Task.WhenAll(tasks);
+
+            return(RetVals);
+        }
+
         // Public methods ------------------------------------------------------------------
 
-        public async Task<double[]> OptimGA(Func<double[], double> Fun, int nVars, double[] Domain, int PopSize = 100, int MaxGenerations = 1000, double MutationProbability = 0.7, double RecombineProbability = 1.0, double Eps = 0.00001, bool Minimize = true)
+        public async Task<double[]> OptimGA(Func<double[], double> Fun, int nVars, double[] Domain, IProgress<ProgressReportModel> progress, CancellationToken cancellationToken, int PopSize = 100, int MaxGenerations = 1000, double MutationProbability = 0.7, double RecombineProbability = 1.0, double Eps = 0.00001, bool Minimize = true)
         {
             bool Max = !Minimize;
             double[,] Population = new double[PopSize, nVars + 1];
@@ -198,6 +227,8 @@ namespace optimGA
             double Mutate;
             double Recombine;
             Random rnd = new Random();
+
+            ProgressReportModel report = new ProgressReportModel();
 
             _startTime = DateTime.Now;
 
@@ -220,7 +251,6 @@ namespace optimGA
                             retVal[j] = Population[0, j];
                         }
 
-                        System.Diagnostics.Debug.WriteLine("Time budget is over, returning.");
                         _endTime = DateTime.Now;
                         _iters = i;
                         _terminationReason = TerminationReason.TimeOut;
@@ -228,25 +258,18 @@ namespace optimGA
                     }
                 }
 
-                System.Diagnostics.Debug.WriteLine("-----");
-                System.Diagnostics.Debug.WriteLine("Generation " + i);
-
-                ParallelLoopResult LoopResult = System.Threading.Tasks.Parallel.For(0, PopSize, (j, state) =>
-                {
-                    CurrVars = new double[nVars];
-
-                    for (int k = 0; k < nVars; k++)
-                    {
-                        CurrVars[k] = Population[j, k];
-                    }
-
-                    Population[j, nVars] = Fun(CurrVars);
-                });
+                double[] EvRes = await Evaluate(Population, Fun);
+                for (int j = 0; j < PopSize; j++) Population[j, nVars] = EvRes[j];
 
                 QuickSort(ref Population, nVars);
                 if (Max) Population = ReverseArray(Population);
 
-                System.Diagnostics.Debug.WriteLine("Fitness evaluated.");
+                report.Percentage = i / MaxGenerations * 100;
+                report.SecondsElapsed = DateTime.Now.Subtract(StartTime).Seconds;
+                report.GenerationsElapsed = i;
+                progress.Report(report);
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 EpsEmp = Math.Abs(Population[0, nVars] - Population[(PopSize / 2) - 1, nVars]);
                 if (EpsEmp < Eps)
@@ -255,14 +278,11 @@ namespace optimGA
                     {
                         retVal[j] = Population[0, j];
                     }
-                    System.Diagnostics.Debug.WriteLine("Convergence reached, returning.");
                     _endTime = DateTime.Now;
                     _iters = i;
                     _terminationReason = TerminationReason.ConvergenceReached;
                     return (retVal);
                 }
-
-                System.Diagnostics.Debug.WriteLine("Convergence not yet reached.");
 
                 RecombineSet1 = Resample(PopSize / 2);
                 RecombineSet2 = Resample(PopSize / 2);
