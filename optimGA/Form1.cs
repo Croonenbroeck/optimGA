@@ -1,5 +1,3 @@
-using System.Windows.Forms;
-
 namespace optimGA 
 {
     public partial class Form1 : Form

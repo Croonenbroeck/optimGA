@@ -1,7 +1,4 @@
-﻿using System;
-using System.Xml.Linq;
-
-namespace optimGA
+﻿namespace optimGA
 {
     public enum TerminationReason
     {
