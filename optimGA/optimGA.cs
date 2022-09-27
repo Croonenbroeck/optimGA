@@ -162,6 +162,7 @@
             List<double[]> Population = new List<double[]>();
             List<double[]> TempPopulation = new List<double[]>();
             double[] Row;
+            double[] EvaluationResult;
             double EpsEmp;
             int[] RecombineSet1;
             int[] RecombineSet2;
@@ -199,8 +200,8 @@
                     }
                 }
 
-                double[] EvRes = await Evaluate(Population, Fun);
-                for (int j = 0; j < PopSize; j++) Population[j][nVars] = EvRes[j];
+                EvaluationResult = await Evaluate(Population, Fun);
+                for (int j = 0; j < PopSize; j++) Population[j][nVars] = EvaluationResult[j];
 
                 Population.Sort((double[] a, double[] b) => a.Last().CompareTo(b.Last()));
                 if (!Minimize) Population.Reverse();
