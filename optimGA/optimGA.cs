@@ -93,17 +93,17 @@
 
         // Private methods -----------------------------------------------------------------
 
-        private double rndRange(double Min, double Max)
+        private static double rndRange(double Min, double Max)
         {
             Random rnd = new Random();
             return ((rnd.NextDouble() * (Max - Min)) + Min);
         }
 
-        private double rndGauss(double Mu, double Sigma, double Bounds)
+        private static double rndGauss(double Mu, double Sigma, double Bounds)
         {
-            double x = 0;
-            double y = 0;
-            double Density = 0;
+            double x;
+            double y;
+            double Density;
             Random rnd = new Random();
 
             do
@@ -116,7 +116,7 @@
             return (x);
         }
 
-        private int[] Resample(int Num)
+        private static int[] Resample(int Num)
         {
             int[] OutVec = new int[Num];
             Random rnd = new Random();
@@ -136,7 +136,7 @@
             return (OutVec);
         }
 
-        private async Task<double[]> Evaluate(List<double[]> Population, Func<double[], double> Fun)
+        private static async Task<double[]> Evaluate(List<double[]> Population, Func<double[], double> Fun)
         {
             int PopSize = Population.Count;
             int nVars = Population[0].Length - 1;
