@@ -119,57 +119,6 @@ namespace optimGA
             return (x);
         }
 
-        private void QuickSort(ref double[,] vSort, int Index = 0, int Start = -1, int End = -1)
-        {
-            if (Start == -1) Start = 0;
-            if (End == -1) End = vSort.GetLength(0) - 1;
-
-            int i;
-            int j;
-            double h;
-            double x;
-
-            i = Start;
-            j = End;
-            x = vSort[(Start + End) / 2, Index];
-
-            do
-            {
-                while (vSort[i, Index] < x) i++;
-                while (vSort[j, Index] > x) j--;
-
-                if (i <= j)
-                {
-                    for (int u = 0; u < vSort.GetLength(1); u++)
-                    {
-                        h = vSort[i, u];
-                        vSort[i, u] = vSort[j, u];
-                        vSort[j, u] = h;
-                    }
-                    i++;
-                    j--;
-                }
-            } while (i <= j);
-
-            if (Start < j) QuickSort(ref vSort, Index, Start, j);
-            if (i < End) QuickSort(ref vSort, Index, i, End);
-        }
-
-        private double[,] ReverseArray(double[,] vRev)
-        {
-            double[,] Target = new double[vRev.GetLength(0), vRev.GetLength(1)];
-
-            for (int i = 0; i < vRev.GetLength(0); i++)
-            {
-                for (int j = 0; j < vRev.GetLength(1); j++)
-                {
-                    Target[i, j] = vRev[vRev.GetLength(0) - 1 - i, j];
-                }
-            }
-
-            return (Target);
-        }
-
         private int[] Resample(int Num)
         {
             int[] OutVec = new int[Num];
@@ -190,20 +139,17 @@ namespace optimGA
             return (OutVec);
         }
 
-        private async Task<double[]> Evaluate(double[,] Population, Func<double[], double> Fun)
+        private async Task<double[]> Evaluate(List<double[]> Population, Func<double[], double> Fun)
         {
-            int PopSize = Population.GetLength(0);
-            int nVars = Population.GetLength(1) - 1;
+            int PopSize = Population.Count;
+            int nVars = Population[0].Length - 1;
 
             List<Task<double>> tasks = new List<Task<double>>();
 
-            for (int i = 0; i < PopSize; i++)
+            foreach (double[] r in Population)
             {
-                double[] Row = new double[nVars];
-                for (int j = 0; j < nVars; j++)
-                {
-                    Row[j] = Population[i, j];
-                }
+                double[] Row = r;
+                Array.Resize(ref Row, Row.Length - 1);
                 tasks.Add(Task.Run(() => Fun(Row)));
             }
 
@@ -216,11 +162,9 @@ namespace optimGA
 
         public async Task<double[]> OptimGA(Func<double[], double> Fun, int nVars, double[] Domain, IProgress<ProgressReportModel> progress, CancellationToken cancellationToken, int PopSize = 100, int MaxGenerations = 1000, double MutationProbability = 0.7, double RecombineProbability = 1.0, double Eps = 0.00001, bool Minimize = true)
         {
-            bool Max = !Minimize;
-            double[,] Population = new double[PopSize, nVars + 1];
-            double[,] TempPopulation = new double[PopSize, nVars + 1];
-            double[] CurrVars = new double[nVars];
-            double[] retVal = new double[nVars];
+            List<double[]> Population = new List<double[]>();
+            List<double[]> TempPopulation = new List<double[]>();
+            double[] Row;
             double EpsEmp;
             int[] RecombineSet1;
             int[] RecombineSet2;
@@ -234,10 +178,12 @@ namespace optimGA
 
             for (int i = 0; i < PopSize; i++)
             {
+                Row = new double[nVars + 1];
                 for (int j = 0; j < nVars; j++)
                 {
-                    Population[i, j] = rndRange(Domain[0], Domain[1]);
+                    Row[j] = rndRange(Domain[0], Domain[1]);
                 }
+                Population.Add(Row);
             }
 
             for (int i = 0; i < MaxGenerations; i++)
@@ -246,23 +192,21 @@ namespace optimGA
                 {
                     if (DateTime.Now.Subtract(StartTime).Seconds > TimeBudget)
                     {
-                        for (int j = 0; j < nVars; j++)
-                        {
-                            retVal[j] = Population[0, j];
-                        }
+                        Row = Population[0];
+                        Array.Resize(ref Row, Row.Length - 1);
 
                         _endTime = DateTime.Now;
                         _iters = i;
                         _terminationReason = TerminationReason.TimeOut;
-                        return (retVal);
+                        return (Row);
                     }
                 }
 
                 double[] EvRes = await Evaluate(Population, Fun);
-                for (int j = 0; j < PopSize; j++) Population[j, nVars] = EvRes[j];
+                for (int j = 0; j < PopSize; j++) Population[j][nVars] = EvRes[j];
 
-                QuickSort(ref Population, nVars);
-                if (Max) Population = ReverseArray(Population);
+                Population.Sort((double[] a, double[] b) => a.Last().CompareTo(b.Last()));
+                if (!Minimize) Population.Reverse();
 
                 report.Percentage = ((double) i / MaxGenerations) * 100;
                 report.SecondsElapsed = DateTime.Now.Subtract(StartTime).Seconds;
@@ -271,17 +215,16 @@ namespace optimGA
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                EpsEmp = Math.Abs(Population[0, nVars] - Population[(PopSize / 2) - 1, nVars]);
+                EpsEmp = Math.Abs(Population[0][nVars] - Population[(PopSize / 2) - 1][nVars]);
                 if (EpsEmp < Eps)
                 {
-                    for (int j = 0; j < nVars; j++)
-                    {
-                        retVal[j] = Population[0, j];
-                    }
+                    Row = Population[0];
+                    Array.Resize(ref Row, Row.Length - 1);
+
                     _endTime = DateTime.Now;
                     _iters = i;
                     _terminationReason = TerminationReason.ConvergenceReached;
-                    return (retVal);
+                    return (Row);
                 }
 
                 RecombineSet1 = Resample(PopSize / 2);
@@ -298,18 +241,18 @@ namespace optimGA
                     {
                         for (int k = 0; k < nVars; k++)
                         {
-                            TempPopulation[j + (PopSize / 2), k] = ((Population[RecombineSet1[j], k] + Population[RecombineSet2[j], k]) / 2) + (Mutate * rndGauss(0, Domain[1] - Domain[0], 5));
-                            if (TempPopulation[j + (PopSize / 2), k] < Domain[0]) TempPopulation[j + (PopSize / 2), k] = Domain[0];
-                            if (TempPopulation[j + (PopSize / 2), k] > Domain[1]) TempPopulation[j + (PopSize / 2), k] = Domain[1];
+                            TempPopulation[j + (PopSize / 2)][k] = ((Population[RecombineSet1[j]][k] + Population[RecombineSet2[j]][k]) / 2) + (Mutate * rndGauss(0, Domain[1] - Domain[0], 5));
+                            if (TempPopulation[j + (PopSize / 2)][k] < Domain[0]) TempPopulation[j + (PopSize / 2)][k] = Domain[0];
+                            if (TempPopulation[j + (PopSize / 2)][k] > Domain[1]) TempPopulation[j + (PopSize / 2)][k] = Domain[1];
                         }
                     }
                     else
                     {
                         for (int k = 0; k < nVars; k++)
                         {
-                            TempPopulation[j + (PopSize / 2), k] = Population[j, k] + (Mutate * rndGauss(0, Domain[1] - Domain[0], 5));
-                            if (TempPopulation[j + (PopSize / 2), k] < Domain[0]) TempPopulation[j + (PopSize / 2), k] = Domain[0];
-                            if (TempPopulation[j + (PopSize / 2), k] > Domain[1]) TempPopulation[j + (PopSize / 2), k] = Domain[1];
+                            TempPopulation[j + (PopSize / 2)][k] = Population[j][k] + (Mutate * rndGauss(0, Domain[1] - Domain[0], 5));
+                            if (TempPopulation[j + (PopSize / 2)][k] < Domain[0]) TempPopulation[j + (PopSize / 2)][k] = Domain[0];
+                            if (TempPopulation[j + (PopSize / 2)][k] > Domain[1]) TempPopulation[j + (PopSize / 2)][k] = Domain[1];
                         }
                     }
                 }
@@ -317,13 +260,12 @@ namespace optimGA
                 _iters = i;
             }
 
-            for (int j = 0; j < nVars; j++)
-            {
-                retVal[j] = Population[0, j];
-            }
+            Row = Population[0];
+            Array.Resize(ref Row, Row.Length - 1);
+
             _endTime = DateTime.Now;
             _terminationReason = TerminationReason.MaxItersReached;
-            return (retVal);
+            return (Row);
         }
     }
 }
