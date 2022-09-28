@@ -47,7 +47,8 @@ namespace optimGA
             progress.ProgressChanged += ReportProgress;
             try
             {
-                double[] RetVals = await MyOptimGA.OptimGA(LocalFuncPointer, 1, Domain, progress, cts.Token);
+                //double[] RetVals = await MyOptimGA.OptimGA(LocalFuncPointer, 1, Domain, progress, cts.Token);
+                double[] RetVals = await MyOptimGA.OptimGA((double[] a) => { return (a[0] * a[0]); }, 1, Domain, progress, cts.Token);
 
                 string Result = "";
                 foreach (double r in RetVals)
